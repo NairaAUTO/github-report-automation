@@ -1,5 +1,13 @@
 import requests
+import os
 from datetime import datetime, timedelta
+import smtplib
+from email.mime.text import MIMEText
+
+EMAIL_ADDRESS = os.environ.get("EMAIL_ADDRESS")
+EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")
+EMAIL_TO = os.environ.get("EMAIL_TO")
+
 
 OWNER = "torvalds"
 REPO = "linux"
@@ -33,6 +41,17 @@ def generate_report():
     issues = repo["open_issues_count"]
     generated_time = datetime.now()
 
+def send_email_report(report):
+    msg = MIMEText(report)
+    msg["Subject"] = "Weekly GitHub Repository Report"
+    msg["From"] = EMAIL_ADDRESS
+    msg["To"] = EMAIL_TO
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+        server.send_message(msg)
+
+
     report = f"""
 GitHub Weekly Report
 Repository: {full_name}
@@ -45,4 +64,6 @@ Generated: {generated_time}
     return report
 
 if __name__ == "__main__":
-    print(generate_report())
+    report = generate_report()
+send_email_report(report)
+
