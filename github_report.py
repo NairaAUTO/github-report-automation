@@ -4,9 +4,9 @@ from datetime import datetime, timedelta
 import smtplib
 from email.mime.text import MIMEText
 
-EMAIL_ADDRESS = os.environ.get("EMAIL_ADDRESS")
-EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")
-EMAIL_TO = os.environ.get("EMAIL_TO")
+EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
+EMAIL_TO = os.getenv("EMAIL_TO")
 
 OWNER = "torvalds"
 REPO = "linux"
@@ -33,7 +33,7 @@ def generate_report():
     repo = get_repo_info()
     commits = get_commits_last_7_days()
 
-    report = f"""
+    return f"""
 GitHub Weekly Report
 
 Repository: {repo['full_name']}
@@ -41,18 +41,24 @@ Stars: {repo['stargazers_count']}
 Forks: {repo['forks_count']}
 Open Issues: {repo['open_issues_count']}
 Commits (Last 7 Days): {commits}
-Generated: {datetime.now()}
+Generated: {datetime.utcnow()}
 """
-    return report
 
 
 def send_email_report(report):
+    assert EMAIL_ADDRESS, "EMAIL_ADDRESS missing"
+    assert EMAIL_PASSWORD, "EMAIL_PASSWORD missing"
+    assert EMAIL_TO, "EMAIL_TO missing"
+
     msg = MIMEText(report)
     msg["Subject"] = "Weekly GitHub Repository Report"
     msg["From"] = EMAIL_ADDRESS
     msg["To"] = EMAIL_TO
 
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+    with smtplib.SMTP("smtp.gmail.com", 587) as server:
+        server.ehlo()
+        server.starttls()
+        server.ehlo()
         server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
         server.send_message(msg)
 
