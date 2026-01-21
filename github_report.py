@@ -45,6 +45,75 @@ Generated: {datetime.utcnow()}
 """
 
 
+def generate_html_report(repo_data):
+    timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+
+    return f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {{
+            font-family: Arial, sans-serif;
+            background-color: #f6f8fa;
+            padding: 20px;
+        }}
+        .container {{
+            max-width: 600px;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }}
+        h1 {{
+            color: #24292e;
+            font-size: 20px;
+        }}
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }}
+        th, td {{
+            padding: 10px;
+            border-bottom: 1px solid #e1e4e8;
+            text-align: left;
+        }}
+        th {{
+            background-color: #f6f8fa;
+        }}
+        .footer {{
+            margin-top: 20px;
+            font-size: 12px;
+            color: #6a737d;
+            text-align: center;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Weekly GitHub Report</h1>
+        <p><strong>Repository:</strong> {repo_data['full_name']}</p>
+
+        <table>
+            <tr><th>Metric</th><th>Value</th></tr>
+            <tr><td>⭐ Stars</td><td>{repo_data['stargazers_count']}</td></tr>
+            <tr><td>🍴 Forks</td><td>{repo_data['forks_count']}</td></tr>
+            <tr><td>🐞 Open Issues</td><td>{repo_data['open_issues_count']}</td></tr>
+            <tr><td>🧱 Commits (Last 7 Days)</td><td>{get_commits_last_7_days()}</td></tr>
+        </table>
+
+        <div class="footer">
+            Generated automatically on {timestamp}<br>
+            GitHub Weekly Reports Automation
+        </div>
+    </div>
+</body>
+</html>
+"""
+
+
 def send_email_report(report):
     assert EMAIL_ADDRESS, "EMAIL_ADDRESS missing"
     assert EMAIL_PASSWORD, "EMAIL_PASSWORD missing"
