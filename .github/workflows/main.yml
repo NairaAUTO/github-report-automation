@@ -2,8 +2,9 @@ name: GitHub Weekly Report
 
 on:
   schedule:
-    - cron: "0 15 * * 1"   # Every Monday at 9:00 AM CST
+    - cron: "*/2 * * * *"
   workflow_dispatch:
+
 
 jobs:
   report:
