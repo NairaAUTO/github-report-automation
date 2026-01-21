@@ -3,16 +3,26 @@ import os
 from datetime import datetime, timedelta
 import smtplib
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
+# =========================
+# Environment Variables
+# =========================
 EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 EMAIL_TO = os.getenv("EMAIL_TO")
 
+# =========================
+# GitHub Config
+# =========================
 OWNER = "torvalds"
 REPO = "linux"
 GITHUB_API = "https://api.github.com"
 
 
+# =========================
+# GitHub API Helpers
+# =========================
 def get_repo_info():
     url = f"{GITHUB_API}/repos/{OWNER}/{REPO}"
     response = requests.get(url)
@@ -29,6 +39,9 @@ def get_commits_last_7_days():
     return len(response.json())
 
 
+# =========================
+# Report Generators
+# =========================
 def generate_report():
     repo = get_repo_info()
     commits = get_commits_last_7_days()
@@ -114,15 +127,25 @@ def generate_html_report(repo_data):
 """
 
 
+# =========================
+# Email Sender (Multipart)
+# =========================
 def send_email_report(report):
     assert EMAIL_ADDRESS, "EMAIL_ADDRESS missing"
     assert EMAIL_PASSWORD, "EMAIL_PASSWORD missing"
     assert EMAIL_TO, "EMAIL_TO missing"
 
-    msg = MIMEText(report)
+    repo_data = get_repo_info()
+    text_report = report
+    html_report = generate_html_report(repo_data)
+
+    msg = MIMEMultipart("alternative")
     msg["Subject"] = "Weekly GitHub Repository Report"
     msg["From"] = EMAIL_ADDRESS
     msg["To"] = EMAIL_TO
+
+    msg.attach(MIMEText(text_report, "plain"))
+    msg.attach(MIMEText(html_report, "html"))
 
     with smtplib.SMTP("smtp.gmail.com", 587) as server:
         server.ehlo()
@@ -132,6 +155,9 @@ def send_email_report(report):
         server.send_message(msg)
 
 
+# =========================
+# Entry Point
+# =========================
 if __name__ == "__main__":
     report = generate_report()
     send_email_report(report)
