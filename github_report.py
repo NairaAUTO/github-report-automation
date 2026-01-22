@@ -1,5 +1,6 @@
 import requests
 import os
+import json
 from datetime import datetime, timedelta
 import smtplib
 from email.mime.text import MIMEText
@@ -19,6 +20,7 @@ OWNER = "torvalds"
 REPO = "linux"
 GITHUB_API = "https://api.github.com"
 
+SNAPSHOT_FILE = "weekly_snapshot.json"
 
 # =========================
 # GitHub API Helpers
@@ -37,6 +39,28 @@ def get_commits_last_7_days():
     response = requests.get(url, params=params)
     response.raise_for_status()
     return len(response.json())
+
+
+# =========================
+# Snapshot (NEW — Part A)
+# =========================
+def build_snapshot():
+    repo = get_repo_info()
+    commits = get_commits_last_7_days()
+
+    return {
+        "repo": repo["full_name"],
+        "stars": repo["stargazers_count"],
+        "forks": repo["forks_count"],
+        "issues": repo["open_issues_count"],
+        "commits": commits,
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+
+def save_snapshot(snapshot):
+    with open(SNAPSHOT_FILE, "w") as f:
+        json.dump(snapshot, f, indent=2)
 
 
 # =========================
@@ -156,8 +180,11 @@ def send_email_report(report):
 
 
 # =========================
-# Entry Point
+# Entry Point (UPDATED)
 # =========================
 if __name__ == "__main__":
+    snapshot = build_snapshot()
+    save_snapshot(snapshot)
+
     report = generate_report()
     send_email_report(report)
