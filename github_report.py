@@ -87,8 +87,8 @@ def calculate_diff(current, previous):
     for key in ["stars", "forks", "open_issues", "commits_last_7_days"]:
         current_val = current[key]
         previous_val = previous[key]
-        change = current_val - previous_val
 
+        change = current_val - previous_val
         percent = 0 if previous_val == 0 else (change / previous_val) * 100
 
         if change > 0:
@@ -244,9 +244,7 @@ def send_email(text_report, html_report):
     msg.attach(MIMEText(html_report, "html"))
 
     with smtplib.SMTP("smtp.gmail.com", 587) as server:
-        server.ehlo()
         server.starttls()
-        server.ehlo()
         server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
         server.send_message(msg)
 
