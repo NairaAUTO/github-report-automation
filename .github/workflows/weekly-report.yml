@@ -2,11 +2,11 @@ name: Weekly GitHub Report
 
 on:
   schedule:
-    - cron: "0 13 * * 1"   # Every Monday at 13:00 UTC
+    - cron: "0 13 * * 1"   # Mondays 13:00 UTC
   workflow_dispatch:
 
 jobs:
-  run-report:
+  report:
     runs-on: ubuntu-latest
 
     steps:
@@ -31,8 +31,8 @@ jobs:
         run: |
           python github_report.py
 
-      - name: Upload snapshot artifacts
+      - name: Upload weekly snapshots
         uses: actions/upload-artifact@v4
         with:
           name: weekly-snapshots
-          path: snapshots/
+          path: weekly-snapshots/
