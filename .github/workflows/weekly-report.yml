@@ -1,17 +1,23 @@
-name: Weekly GitHub Report
+name: GitHub Weekly Report
 
 on:
   schedule:
-    # Every Monday at 13:00 UTC
-    - cron: "0 13 * * 1"
+    # Every Monday at 9:00 AM CST (15:00 UTC)
+    - cron: "0 15 * * 1"
   workflow_dispatch:
 
 jobs:
   report:
     runs-on: ubuntu-latest
 
+    env:
+      EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+      EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+      EMAIL_TO: ${{ secrets.EMAIL_TO }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -22,18 +28,22 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install requests
+
+      # 🔹 NEW STEP — Restore previous snapshots
+      - name: Download previous snapshots
+        uses: actions/download-artifact@v4
+        with:
+          name: snapshots
+          path: snapshots
+        continue-on-error: true
 
       - name: Run GitHub report script
-        env:
-          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
-          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-          EMAIL_TO: ${{ secrets.EMAIL_TO }}
-        run: |
-          python github_report.py
+        run: python github_report.py
 
-      - name: Upload weekly snapshots
+      # 🔹 NEW STEP — Save updated snapshots
+      - name: Upload snapshots artifact
         uses: actions/upload-artifact@v4
         with:
-          name: weekly-snapshots
-          path: snapshots/
+          name: snapshots
+          path: snapshots
